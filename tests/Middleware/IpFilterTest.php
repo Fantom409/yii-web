@@ -130,6 +130,24 @@ class IpFilterTest extends TestCase
         $ipFilter->process($requestMock, $this->requestHandlerMock);
     }
 
+    public function testWithIpValidator() {
+        $requestParams = [
+            'REMOTE_ADDR' => self::ALLOWED_IP,
+        ];
+
+        $this->setUpResponseFactory();
+        $requestMock = $this->createMock(ServerRequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('getServerParams')
+            ->willReturn($requestParams);
+
+
+        $ipFilter = $this->ipFilter->withIpValidator((new Ip())->ranges(['!' . self::ALLOWED_IP]));
+
+        $ipFilter->process($requestMock, $this->requestHandlerMock);
+    }
+
     public function setUpResponseFactory(): void
     {
         $response = new Response(403);
