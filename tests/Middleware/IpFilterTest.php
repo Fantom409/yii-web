@@ -78,6 +78,58 @@ class IpFilterTest extends TestCase
         $this->ipFilter->process($requestMock, $this->requestHandlerMock);
     }
 
+    public function testProcessWithWrongAttribute(): void {
+        $this->setUpResponseFactory();
+
+        $ipFilter = new IpFilter(
+            (new Ip())->ranges([self::ALLOWED_IP]),
+            $this->responseFactoryMock,
+            'clientIpAttr'
+        );
+
+        $requestMock = $this->createMock(ServerRequestInterface::class);
+
+        $ipFilter->process($requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessWithRightAttribute(): void {
+        $ipFilter = new IpFilter(
+            (new Ip())->ranges([self::ALLOWED_IP]),
+            $this->responseFactoryMock,
+            'clientIpAttr'
+        );
+
+        $requestMock = $this->createMock(ServerRequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('getAttribute')
+            ->willReturn(self::ALLOWED_IP);
+
+        $this->requestHandlerMock
+            ->expects($this->once())
+            ->method('handle')
+            ->with($requestMock);
+
+        $ipFilter->process($requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessWithWrongAttributeValue() {
+        $ipFilter = new IpFilter(
+            (new Ip())->ranges([self::ALLOWED_IP]),
+            $this->responseFactoryMock,
+            'clientIpAttr'
+        );
+
+        $this->setUpResponseFactory();
+        $requestMock = $this->createMock(ServerRequestInterface::class);
+        $requestMock
+            ->expects($this->once())
+            ->method('getAttribute')
+            ->willReturn('8.8.8.8');
+
+        $ipFilter->process($requestMock, $this->requestHandlerMock);
+    }
+
     public function setUpResponseFactory(): void
     {
         $response = new Response(403);
